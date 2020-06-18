@@ -17,7 +17,7 @@ The plan is to create a new stage in the K8s pipeline and add an action to trigg
 cw_events.put_rule(
     Name=rule_name,
     Description='LambdaEventRule',
-    ScheduleExpression=f'cron({scheduled_minute} {scheduled_hour} * * ? *)',  # noqa E501
+    ScheduleExpression=f'cron({scheduled_minute} {scheduled_hour} * * ? *)',
     State='ENABLED'
 )
 
