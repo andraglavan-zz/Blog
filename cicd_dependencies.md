@@ -52,7 +52,16 @@ response = cicd.put_job_failure_result(
 return response
 ```
 
-But if the main pipeline is running, it will trigger a CloudWatch Event that will have another lambda function as a target, let’s called it K8s Lambda. The CloudWatch Event will have a rule that is being triggered by a scheduled expression in 5 minutes after it was called and it has as target, the K8s Lambda function. This function will have as scope to first delete the event, and then to trigger the K8s pipeline again. In order to delete the event, it must first delete the events targets.
+To control the ScheduledExpression parameter, a cron expression is being used. This will run once a day, 5 minutes after the current time.
+
+```
+now = datetime.now()
+current_hour = int(now.strftime("%H"))
+current_minute = int(now.strftime("%M"))
+scheduled_minute = current_minute + 5
+```
+
+If the main pipeline is running, it will trigger a CloudWatch Event that will have another lambda function as a target, let’s called it K8s Lambda. The CloudWatch Event will have a rule that is being triggered by the scheduled expression that we talked about above, and it has as target the K8s Lambda function. This function will have as scope to first delete the event, and then to trigger the K8s pipeline again. In order to delete the event, it must first delete the events targets. The event deletion will ensure that we can always trigger the K8s Lambda, 5 minutes after the event was created.
 
 ```
 cw_events.remove_targets(
