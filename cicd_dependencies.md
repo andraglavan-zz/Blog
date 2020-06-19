@@ -1,6 +1,6 @@
 # Use AWS Lambda to create CI/CD dependencies with Code Pipeline
 
-At Sentia we like to make the everybody’s lives easier, by trying to fully automate our solutions. We are using a lot of tools and services to do so, including AWS CDK and AWS CodePipeline. When we started to offer Kubernetes solutions to our customers, one CodePipeline pipeline was not enough to do the job, because one pipeline with multiple purposes will add complexity to the solution and it will create unwanted dependencies.  
+At Sentia we like to make everybody’s lives easier, by trying to fully automate our solutions. We are using a lot of tools and services to do so, including AWS CDK and AWS CodePipeline. When we started to offer Kubernetes solutions to our customers, one CodePipeline pipeline was not enough to do the job, because one pipeline with multiple purposes will add complexity to the solution and it will create unwanted dependencies.  
 
 Separating the pipelines per purpose, will remove complexity from the pipeline design, will create separate processes and will decouple the components, will be easier to debug, and it will improve the change process by only changing the part you need. 
 
@@ -8,7 +8,7 @@ In our case, we wanted to separate the infrastructure deployments, from the appl
 
 Although having different pipelines for different purposes brings many benefits, it does come with some challenges as well. The main challenge is managing all the pipelines. This is because some of them will require more time to run, and some of them will require less. And, usually when this happens, you might need them to run in a specific order, so the result of one pipeline can be used as an input for the next one, and so on. In order to obtain this, some pipeline dependencies need to be created. To do this in a professional and cost-effective manner, following the recommended best practices from AWS, leads us to use AWS Lambda functions. 
 
-Back to our use case, we have the main pipeline, the one responsible for deploying all the underlying infrastructure, and needs more time to complete than the K8s pipeline, the one used for the pods deployment. The first one is responsible for updates of the underlying infrastructure, including K8s infrastructure, and it should finish to update successfully, all the stages before the second one starts running. This way, the K8s pipeline will have the latest updates on the infrastructure and can run safely.
+Back to our use case, we have the main pipeline, the one responsible for deploying all the underlying infrastructure, and needs more time to complete than the K8s pipeline, the one used for the pods deployment. The first one is responsible for updates of the underlying infrastructure, including K8s infrastructure, and it should finish to update successfully, all the stages, before the second one starts running. This way, the K8s pipeline will have the latest updates on the infrastructure and can run safely.
 
 The plan is to create a new stage in the K8s pipeline and add an action to trigger one lambda function. This first lambda function is the main lambda and will be responsible to check if the main pipeline is running, and if it isn’t running, let the process continue.
 
