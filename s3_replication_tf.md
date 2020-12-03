@@ -133,7 +133,7 @@ This is all that needs to be done in code, but don't forget about the second req
     ]
 }
 ```
-
+To wrap it up, in order for the replication to work in this scenario, the KMS key in the Destination account needs to have a policy to allow the replication IAM role to use it, and the replication role needs to have a policy to use the KMS key in the destination account.
 ## Looking forward
 
 This year at **re:Invent**, a lot of great things were announced for S3 and I am looking forward to seeing which one will facilitate the automated deployments and which one will be, let's say, a bit tricky to play with.
