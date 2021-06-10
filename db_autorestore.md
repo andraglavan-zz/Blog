@@ -34,7 +34,7 @@ In AWS SSM Parameter Store, I have created 5 parameters:
 
 The current value will be the one from which the databases are restored from and the latest value will be the value of the most recent snapshot that exists in the account for DocumentDB or Aurora.
 We need to have 2 different parameters, one for the current and one for the latest snapshot, to be able to restore the databases from a specific snapshot ID outside of this process.
-There are 2 pipeline in the account, so the name of the main pipeline, the one that is deploying the infrastructure was needed.
+There are 2 pipeline in the account, so the name of the main pipeline, the one that is deploying the infrastructure, was needed.
 
 The entire solution was written using IaC in AWS CDK with Python.
 
@@ -54,7 +54,7 @@ And this is it for the update process.
 Now for the restore is even simpler. Using another cronjob the restore function  (*db-restore-from-snapshot*) will run every 2 weeks, 2 hours later than the update process.
 The tasks of this functions are:
 
-* *update_current* - it gets the value from the latest parameters and copies it to the current one. Now the value of the *documentdb_current_snapshot_id* will be updated with the value of *documentdb_latest_snapshot_id*. The pipeline will check the value of the current parameters. We have split this process with latest and current parameters to facilitate the restore from a snapshot in other cases than the ones described in this article.
+* *update_current* - it gets the value from the latest parameters and copies it to the current one. Now the value of the *documentdb_current_snapshot_id* will be updated with the value of *documentdb_latest_snapshot_id*. The pipeline will check the value of the current parameters. We have split this process with latest and current parameters to facilitate the restore from a snapshot in other cases than the ones described in this article as menioned above.
 
 * trigger the deployment pipeline using the *main_cicd_name* from the SSM Parameter Store
 
