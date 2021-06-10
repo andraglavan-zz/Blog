@@ -1,6 +1,6 @@
-# Automatic database update and restore with AWS Lambda functions
+# Automated database update and restore with AWS Lambda functions
 
-The road map to cloud adoption can be difficult to set and implement, but once it is completed it offers a lot of flexibility, a lot of space for continuous improvement and creativity for building new solutions.
+The road map to cloud adoption can be difficult to set and implement, but once it is completed it offers a lot of flexibility, a lot of space for continuous improvement and a lot of room for creativity to build new solutions.
 Having automated processes helps your company to focus on what is important for the business and lets the developers experiment more and efficienlty optimize their work. 
 One of the latest things I've been working on involves a task that needed to be continued after the client's solution was already moved to the cloud. What I liked about it was that it is not only taking the advantage of being in the cloud, it also involves serverless technology that I consider to be the next level of cloud solutions.
 
@@ -39,3 +39,51 @@ There are 2 pipeline in the account, so the name of the main pipeline, the one t
 The entire solution was written using IaC in AWS CDK with Python.
 
 ![Architecture](db_autorestore)
+
+## How does it work
+Using a cronjob the update function (*db-update-latest-snapshot-id*) will run every 2 weeks at 2 AM.
+This function has the following tasks/functions:
+
+* *copy_docdb_snapshot* - checks for the latest DocumentDB shared and manual snapshot, and it takes the latest value for both of them. It then checks if the latest shared snapshot is already copied and if not, it will copy that one, if yes, it will return a nice message. 
+
+* *get_latest_rds_snapshots* - checks for the latest shared snapshot for Aurora DB and it gets the latest one.
+
+* *update_ssm* - it will update the SSM Parameter store with the new values of the latest snapshots in *documentdb_latest_snapshot_id* and in *aurora_latest_snapshot_id*.
+
+And this is it for the update process.
+Now for the restore is even simpler. Using another cronjob the restore function  (*db-restore-from-snapshot*) will run every 2 weeks, 2 hours later than the update process.
+The tasks of this functions are:
+
+* *update_current* - it gets the value from the latest parameters and copies it to the current one. Now the value of the *documentdb_current_snapshot_id* will be updated with the value of *documentdb_latest_snapshot_id*. The pipeline will check the value of the current parameters. We have split this process with latest and current parameters to facilitate the restore from a snapshot in other cases than the ones described in this article.
+
+* trigger the deployment pipeline using the *main_cicd_name* from the SSM Parameter Store
+
+    ```
+    # Trigger a new pipeline deployment
+        cicd_client.start_pipeline_execution(
+            name=cicd_name
+        )
+    ```
+
+## Small bumps
+The process of finding out a solution was challenging in each phase of implementation. At the beginning we tried to find a solution that will come on top of the existing one and work to improve it. In the process of implementing the solution with Lambda functions there was the problem of identifying the exact snapshot we need, which of course was just a matter of knowing what you want to extract and reading the documentation. For example, the process of checking the available shared snapshot for the DocumentDB is looking like this:
+
+```
+docdb_shared_snapshots = docdb_client.describe_db_cluster_snapshots(
+        SnapshotType='shared',
+        IncludeShared=True
+    )
+
+# Check available DocDB shared snapshots
+    docdb_shared_snapshots_source = []
+    for snap in docdb_shared_snapshots['DBClusterSnapshots']:
+        source_account_id = snap['DBClusterSnapshotIdentifier'].split(':')[4]
+        if snap['Status'] == 'available' and \
+           source_account_id == source_account and \
+           snap['EngineVersion'] == docdb_engine_version:
+            docdb_shared_snapshots_source.append(snap)
+```
+
+So we had to select from all the snapshots the ones that are having a specific source account ID, that are available and that are specific for DocumentDB.
+## Conclusion
+Even with the small bumps we had, this solution is pretty easy to implement in the AWS cloud. The solution not only saves time and money, but also protects the environment against the human erros that can easly happen at that time at night when databases operations are implemented. With the manual task out of the way the developers can focus on other important tasks and also on bringing more automation to the solution as well.
