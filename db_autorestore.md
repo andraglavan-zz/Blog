@@ -1,7 +1,7 @@
 # Automated database update and restore with AWS Lambda functions
 
-The road map to cloud adoption can be difficult to set and implement, but once it is completed it offers a lot of flexibility, a lot of space for continuous improvement and a lot of room for creativity to build new solutions.
-Having automated processes helps your company to focus on what is important for the business and lets the developers experiment more and efficienlty optimize their work. 
+The roadmap to cloud adoption can be difficult to set and implement, but once it is completed it offers a lot of flexibility, a lot of space for continuous improvement and a lot of room for creativity to build new solutions.
+Having automated processes helps your company to focus on what is important for the business and lets the developers experiment more and efficiently optimize their work. 
 One of the latest things I've been working on involves a task that needed to be continued after the client's solution was already moved to the cloud. What I liked about it was that it is not only taking the advantage of being in the cloud, it also involves serverless technology that I consider to be the next level of cloud solutions.
 
 ## Scenario
@@ -11,7 +11,7 @@ Our customer has 2 different AWS accounts:
 
 and all the changes on the databases in Production account are needed in Acceptance account every 2 weeks. The databases used are AWS DocumentDB and AWS Aurora.
 The old way of doing this with the on-prem infrastructure was to manually run some commands and update the databases.
-The process should be done in the maintenance window which implies working in the night/early morning when nobody is using the databases.
+The process should be done in the maintenance window, which implies working in the night/early morning when nobody is using the databases.
 The big advantage of having the solution in the cloud is that it can easly be automated using services that bring low or no cost at all, and that this solution needs no human interaction.
 
 ## Solution overview
@@ -38,7 +38,7 @@ There are 2 pipeline in the account, so the name of the main pipeline, the one t
 
 The entire solution was written using IaC in AWS CDK with Python.
 
-![Architecture](db_autorestore)
+![Architecture](db_autorestore.png)
 
 ## How does it work
 Using a cronjob the update function (*db-update-latest-snapshot-id*) will run every 2 weeks at 2 AM.
@@ -58,7 +58,7 @@ The tasks of this functions are:
 
 * trigger the deployment pipeline using the *main_cicd_name* from the SSM Parameter Store
 
-    ```
+    ```Python
     # Trigger a new pipeline deployment
         cicd_client.start_pipeline_execution(
             name=cicd_name
@@ -68,7 +68,7 @@ The tasks of this functions are:
 ## Small bumps
 The process of finding out a solution was challenging in each phase of implementation. At the beginning we tried to find a solution that will come on top of the existing one and work to improve it. In the process of implementing the solution with Lambda functions there was the problem of identifying the exact snapshot we need, which of course was just a matter of knowing what you want to extract and reading the documentation. For example, the process of checking the available shared snapshot for the DocumentDB is looking like this:
 
-```
+```Python
 docdb_shared_snapshots = docdb_client.describe_db_cluster_snapshots(
         SnapshotType='shared',
         IncludeShared=True
@@ -86,4 +86,4 @@ docdb_shared_snapshots = docdb_client.describe_db_cluster_snapshots(
 
 So we had to select from all the snapshots the ones that are having a specific source account ID, that are available and that are specific for DocumentDB.
 ## Conclusion
-Even with the small bumps we had, this solution is pretty easy to implement in the AWS cloud. The solution not only saves time and money, but also protects the environment against the human erros that can easly happen at that time at night when databases operations are implemented. With the manual task out of the way the developers can focus on other important tasks and also on bringing more automation to the solution as well.
+Even with the small bumps we had, this solution is pretty easy to implement in the AWS cloud. The solution not only saves time and money, but also protects the environment against the human errors that can easily happen at that time at night when databases operations are implemented. With the manual task out of the way the developers can focus on other important tasks and also on bringing more automation to the solution as well.
