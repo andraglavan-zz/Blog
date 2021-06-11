@@ -39,7 +39,7 @@ There are 2 pipeline in the account, so the name of the main pipeline, the one t
 
 The entire solution was written using IaC in AWS CDK with Python.
 
-![Architecture](db_autorestore.png)
+![Architecture](db_autorestore_docdb.png)
 
 ## How does it work
 Using a cronjob the update function (*db-update-latest-snapshot-id*) will run every 2 weeks at 2 AM.
