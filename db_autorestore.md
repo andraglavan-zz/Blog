@@ -1,10 +1,10 @@
-# Automated database update and restore with AWS Lambda functions
+# Automated database update and restore with AWS Lambda functions for AWS DocumentDB
 
-The roadmap to cloud adoption can be difficult to set and implement, but once it is completed it offers a lot of flexibility, a lot of space for continuous improvement and a lot of room for creativity to build new solutions.
-Having automated processes helps your company to focus on what is important for the business and lets the developers experiment more and efficiently optimize their work. 
-One of the latest things I've been working on involves a task that needed to be continued after the client's solution was already moved to the cloud. What I liked about it was that it is not only taking the advantage of being in the cloud, it also involves serverless technology that I consider to be the next level of cloud solutions.
+In my previous article I talked about my last challenge, namely the automation of an update and restore process for the solution that was already migrated to the cloud. We discussed there the advantages of cloud adoption and we have focused on the Aurora DB. Another great thing about the cloud is that we can reuse and adapt solutions to meet different requirements. We will discuss in this article how we have reused the same solution and what modifications we have made to make it suitable for DocumentDB.
 
-## Scenario
+Amazon DocumentDB has MongoDB compatibility and "is a database service that is purpose-built for JSON data management at scale, fully managed and integrated with AWS, and enterprise-ready with high durability." as AWS states in the official documentation.
+
+## Scenario (recap)
 Our customer has 2 different AWS accounts:
  * Acceptance
  * Production
@@ -14,7 +14,7 @@ The old way of doing this with the on-prem infrastructure was to manually run so
 The process should be done in the maintenance window, which implies working in the night/early morning when nobody is using the databases.
 The big advantage of having the solution in the cloud is that it can easly be automated using services that bring low or no cost at all, and that this solution needs no human interaction.
 
-## Solution overview
+## Solution overview (recap)
 The solution we agreed on was to split the process in 2 main parts having 2 AWS Lambda functions:
  * first one, *db-update-latest-snapshot-id*, will mainly focus on preparing the environment:
     - copy the shared DocumentDB snapshot (because we can’t restore from it directly, see [this](https://docs.aws.amazon.com/documentdb/latest/developerguide/backup_restore-share_cluster_snapshots.html) article)
@@ -25,12 +25,12 @@ The solution we agreed on was to split the process in 2 main parts having 2 AWS 
 I took advantage of the already existing AWS Lambda functions that are sharing the database snapshots from one account to the other. The sharing part is not in the scope of this article but it was ilustrated for a better view of the solution.
 Having two lambda functions with a small defined taks, is not only best practise of AWS, but gives also the flexibility to copy/share more frequently without a real restore being done.
 
-In AWS SSM Parameter Store, I have created 5 parameters:
+In AWS SSM Parameter Store, I have created 2 more parameters:
 
- * aurora_current_snapshot_id
- * aurora_latest_snapshot_id
  * documentdb_current_snapshot_id 
  * documentdb_latest_snapshot_id
+
+ and I have reused one:
  * main_cicd_name
 
 The current value will be the one from which the databases are restored from and the latest value will be the value of the most recent snapshot that exists in the account for DocumentDB or Aurora.
